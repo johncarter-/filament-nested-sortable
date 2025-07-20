@@ -57,21 +57,41 @@ abstract class NestedSortablePage extends Page
 
         $modelClass = $this->getModelClass();
 
-        return $modelClass::query()
+        // Get all items and convert to array
+        $allItems = $modelClass::query()
             ->orderBy($this->getParentColumn())
             ->orderBy($this->getOrderColumn())
             ->get()
             ->map(function ($item) {
+                $parentId = $item->{$this->getParentColumn()};
+
                 return [
                     'id' => $item->id,
-                    'parent_id' => $item->{$this->getParentColumn()},
+                    'parent_id' => $parentId == -1 ? null : $parentId, // Convert -1 back to null for frontend
                     'order' => $item->{$this->getOrderColumn()} ?? 0,
                     'display' => $item->{$this->getDisplayColumn()},
-                    'depth' => $this->calculateDepth($item),
-                    'has_children' => $item->{$this->getChildrenRelationship()}()->exists(),
+                    'children' => [], // Initialize empty children array
                 ];
             })
             ->toArray();
+
+        // Build hierarchical tree structure
+        return $this->buildTree($allItems);
+    }
+
+    protected function buildTree(array $items, $parentId = null): array
+    {
+        $tree = [];
+
+        foreach ($items as $item) {
+            if ($item['parent_id'] == $parentId) {
+                // Find children for this item
+                $item['children'] = $this->buildTree($items, $item['id']);
+                $tree[] = $item;
+            }
+        }
+
+        return $tree;
     }
 
     protected function calculateDepth(Model $item): int
@@ -137,7 +157,7 @@ abstract class NestedSortablePage extends Page
                     // Update the model with new order and parent_id
                     $model->update([
                         $orderColumn => $item['order'],
-                        $parentColumn => $item['parent_id'] ?? null,
+                        $parentColumn => $item['parent_id'] ?? -1,
                     ]);
                 }
             }
