@@ -11,12 +11,16 @@ class FilamentNestedSortableServiceProvider extends PackageServiceProvider
     {
         $package
             ->name('filament-nested-sortable')
-            ->hasViews();
+            ->hasViews()
+            ->hasTranslations();
     }
 
     public function packageBooted(): void
     {
         // Register the view namespace
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'filament-nested-sortable');
+
+        // Register the language files
+        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'filament-nested-sortable');
     }
 }
