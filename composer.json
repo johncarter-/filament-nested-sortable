@@ -1,0 +1,21 @@
+{
+  "name": "johncarter/filament-nested-sortable",
+  "description": "A Filament 3 plugin for ordering and nesting model records",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "filament/filament": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "JohnCarter\\FilamentNestedSortable\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "JohnCarter\\FilamentNestedSortable\\FilamentNestedSortableServiceProvider"
+      ]
+    }
+  }
+}
