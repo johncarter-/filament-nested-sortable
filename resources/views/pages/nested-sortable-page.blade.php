@@ -5,21 +5,115 @@
                 items: {{ Js::from($this->getTreeItems()) }},
                 originalItems: {{ Js::from($this->getTreeItems()) }},
                 workingItems: {{ Js::from($this->getTreeItems()) }},
-                renderKey: 0,
                 hasChanges: false,
-                isDragging: false,
+                dragging: null,
+                draggedOver: null,
+                dropPosition: null, // 'before', 'after', or null
+                dragOverTimeout: null, // For cleanup
+                displayItems: [], // Stage 1: Separate array for flat display
+            
                 init() {
                     this.$watch('workingItems', (newItems) => {
                         this.checkForChanges();
                     }, { deep: true });
             
-                    // Store reference to this component globally for sortable callbacks
-                    window.treeComponent = this;
+                    // Initialize display items for Stage 1
+                    this.displayItems = this.flattenItems(this.workingItems);
+                },
             
-                    // Initialize sortables after component is ready
-                    this.$nextTick(() => {
-                        this.initializeSortables();
-                    });
+                // Flatten tree for simple single-level testing
+                flattenItems(items) {
+                    const flatten = (items) => {
+                        let flat = [];
+                        items.forEach(item => {
+                            flat.push(item);
+                            if (item.children && item.children.length > 0) {
+                                flat.push(...flatten(item.children));
+                            }
+                        });
+                        return flat;
+                    };
+                    return flatten(items);
+                },
+            
+                startDrag(event, item) {
+                    // Capture the height of the dragged element
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    this.dragging = {
+                        ...item,
+                        height: rect.height
+                    };
+            
+                    event.dataTransfer.effectAllowed = 'move';
+                    console.log('Starting drag:', this.dragging);
+            
+                    // Also set up cleanup on dragend (in case drop doesn't fire)
+                    event.target.addEventListener('dragend', () => {
+                        this.clearDragState();
+                    }, { once: true });
+                },
+            
+                clearDragState() {
+                    this.dragging = null;
+                    this.draggedOver = null;
+                    this.dropPosition = null;
+                    if (this.dragOverTimeout) {
+                        clearTimeout(this.dragOverTimeout);
+                        this.dragOverTimeout = null;
+                    }
+                    console.log('Drag state cleared');
+                },
+            
+                dragOverZone(event, item, position) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+            
+                    // Set the targeted drop zone
+                    this.draggedOver = item;
+                    this.dropPosition = position;
+                },
+            
+                dragLeaveZone(event) {
+                    // Clear state when leaving drop zone
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                        this.draggedOver = null;
+                        this.dropPosition = null;
+                    }
+                },
+            
+                dropInZone(event, targetItem, position) {
+                    event.preventDefault();
+            
+                    if (!this.dragging || this.dragging.id === targetItem.id) {
+                        this.clearDragState();
+                        return;
+                    }
+            
+                    console.log('Dropping', this.dragging, 'at position:', position, 'relative to:', targetItem);
+            
+                    // Find indices - use the original item for array operations
+                    const dragIndex = this.displayItems.findIndex(item => item.id === this.dragging.id);
+                    let targetIndex = this.displayItems.findIndex(item => item.id === targetItem.id);
+            
+                    if (dragIndex !== -1 && targetIndex !== -1) {
+                        // Remove dragged item first (use the original item from the array)
+                        const [draggedItem] = this.displayItems.splice(dragIndex, 1);
+            
+                        // Adjust target index if we removed item before it
+                        if (dragIndex < targetIndex) {
+                            targetIndex -= 1;
+                        }
+            
+                        // Insert based on position
+                        const insertIndex = position === 'before' ? targetIndex : targetIndex + 1;
+                        this.displayItems.splice(insertIndex, 0, draggedItem);
+            
+                        console.log('Reordered:', this.displayItems.map(i => i.display));
+                        console.log('Inserted at position:', insertIndex);
+                    }
+            
+                    // Clear all drag states
+                    this.clearDragState();
                 },
                 checkForChanges() {
                     this.hasChanges = JSON.stringify(this.workingItems) !== JSON.stringify(this.originalItems);
@@ -136,12 +230,42 @@
                             fallbackOnBody: true,
                             swapThreshold: 0.65,
             
+                            onChoose: (evt) => {
+                                // Capture original dimensions and positioning before sortable-chosen class is applied
+                                const originalHeight = evt.item.offsetHeight;
+                                const originalWidth = evt.item.offsetWidth;
+                                const computedStyle = window.getComputedStyle(evt.item);
+                                const rect = evt.item.getBoundingClientRect();
+            
+                                // Capture all relevant positioning properties
+                                evt.item.style.setProperty('--original-height', originalHeight + 'px');
+                                evt.item.style.setProperty('--original-width', originalWidth + 'px');
+                                evt.item.style.setProperty('--original-margin-left', computedStyle.marginLeft);
+                                evt.item.style.setProperty('--original-margin-right', computedStyle.marginRight);
+                                evt.item.style.setProperty('--original-margin-top', computedStyle.marginTop);
+                                evt.item.style.setProperty('--original-margin-bottom', computedStyle.marginBottom);
+                                evt.item.style.setProperty('--original-padding-left', computedStyle.paddingLeft);
+                                evt.item.style.setProperty('--original-padding-right', computedStyle.paddingRight);
+            
+            
+                            },
+            
                             onStart: (evt) => {
                                 this.isDragging = true;
                                 document.body.classList.add('is-dragging');
                             },
             
                             onEnd: (evt) => {
+                                // Clean up all custom properties
+                                evt.item.style.removeProperty('--original-height');
+                                evt.item.style.removeProperty('--original-width');
+                                evt.item.style.removeProperty('--original-margin-left');
+                                evt.item.style.removeProperty('--original-margin-right');
+                                evt.item.style.removeProperty('--original-margin-top');
+                                evt.item.style.removeProperty('--original-margin-bottom');
+                                evt.item.style.removeProperty('--original-padding-left');
+                                evt.item.style.removeProperty('--original-padding-right');
+            
                                 this.isDragging = false;
                                 document.body.classList.remove('is-dragging');
                                 this.handleSortEnd(evt);
@@ -210,75 +334,119 @@
 
 
 
-            <!-- Nested Tree Container -->
-            <div class="nested-sortable-tree">
-                <div class="nested-sortable" data-level="0">
-                    <template x-for="(item, index) in workingItems" :key="`${item.id}-${renderKey}`">
-                        <div class="tree-item" :data-id="item.id">
-                            <!-- Item Card -->
-                            <div class="dark:bg-gray-800 dark:border-gray-700 mb-1 bg-white rounded-lg border border-gray-200 transition-all duration-200">
-                                <div class="flex items-stretch">
-                                    <div class="drag-handle hover:text-gray-600 dark:hover:text-gray-300 dark:bg-gray-700 dark:border-gray-600 flex justify-center items-center p-1 text-gray-400 bg-gray-50 rounded-l-lg border-r border-gray-200 cursor-move">
-                                        <x-filament-nested-sortable::drag-handle class="w-5 h-5" />
-                                    </div>
-                                    <div class="flex-1 p-3">
-                                        <span x-text="item.display" class="dark:text-white text-sm font-medium text-gray-900"></span>
-                                        <span class="dark:bg-gray-700 px-2 py-1 ml-2 text-xs text-gray-500 bg-gray-100 rounded">Root Level</span>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- STAGE 1: Simple Single-Level Drag & Drop -->
+            <div class="bg-yellow-100 border border-yellow-400 rounded p-4 mb-4">
+                <h4 class="font-bold text-yellow-800 mb-2">🚧 Stage 1: Basic Drag & Drop Testing</h4>
+                <p class="text-yellow-700 text-sm">This shows all items in a flat list for basic drag/drop testing. Check console for debug info.</p>
 
-                            <!-- Always show children container if children exist -->
-                            <div x-show="(item.children && item.children.length > 0) || isDragging" class="ml-6">
-                                <div class="nested-sortable children" :data-level="1">
-                                    <template x-for="(child, childIndex) in item.children || []" :key="`${child.id}-${renderKey}`">
-                                        <div class="tree-item" :data-id="child.id">
-                                            <div class="dark:bg-gray-800 dark:border-gray-700 hover:shadow-md mb-2 bg-white rounded-lg border border-gray-200 shadow-sm transition-all duration-200">
-                                                <div class="flex items-stretch">
-                                                    <div class="drag-handle hover:text-gray-600 dark:hover:text-gray-300 dark:bg-gray-700 dark:border-gray-600 flex justify-center items-center p-1 text-gray-400 bg-gray-50 rounded-l-lg border-r border-gray-200 cursor-move">
-                                                        <x-filament-nested-sortable::drag-handle class="w-5 h-5" />
-                                                    </div>
-                                                    <div class="flex-1 p-3">
-                                                        <span x-text="child.display" class="dark:text-white text-sm font-medium text-gray-900"></span>
-                                                        <span class="dark:bg-blue-900 dark:text-blue-300 px-2 py-1 ml-2 text-xs text-blue-700 text-gray-500 bg-blue-100 rounded">Level 1</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+            </div>
 
-                                            <!-- Always show level 2 container if children exist -->
-                                            <div x-show="(child.children && child.children.length > 0) || isDragging" class="ml-6">
-                                                <div class="nested-sortable children" :data-level="2">
-                                                    <template x-for="(grandchild, grandchildIndex) in child.children || []" :key="`${grandchild.id}-${renderKey}`">
-                                                        <div class="tree-item" :data-id="grandchild.id">
-                                                            <div class="dark:bg-gray-800 dark:border-gray-700 hover:shadow-md mb-3 bg-white rounded-lg border border-gray-200 shadow-sm transition-all duration-200">
-                                                                <div class="flex items-stretch">
-                                                                    <div class="drag-handle hover:text-gray-600 dark:hover:text-gray-300 dark:bg-gray-700 dark:border-gray-600 flex justify-center items-center p-3 text-gray-400 bg-gray-50 rounded-l-lg border-r border-gray-200 cursor-move">
-                                                                        <x-filament-nested-sortable::drag-handle class="w-5 h-5" />
-                                                                    </div>
-                                                                    <div class="flex-1 p-4">
-                                                                        <span x-text="grandchild.display" class="dark:text-white text-sm font-medium text-gray-900"></span>
-                                                                        <span class="dark:bg-purple-900 dark:text-purple-300 px-2 py-1 ml-2 text-xs text-purple-700 text-gray-500 bg-purple-100 rounded">Level 2</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
+            <div class="space-y-0">
+                <template x-for="(item, index) in displayItems" :key="item.id">
+                    <div>
+                        <!-- Drop Zone BEFORE first item only -->
+                        <div x-show="index === 0"
+                            @dragover="dragOverZone($event, item, 'before')"
+                            @dragleave="dragLeaveZone($event)"
+                            @drop="dropInZone($event, item, 'before')"
+                            :class="{
+                                'h-12 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg': draggedOver?.id === item.id && dropPosition === 'before',
+                                'h-3 bg-gray-50 border border-dashed border-gray-300 rounded opacity-50': dragging && !(draggedOver?.id === item.id && dropPosition === 'before'),
+                                'h-0': !dragging
+                            }"
+                            class="transition-all duration-200 ease-out flex items-center justify-center">
+
+                            <!-- Ghost element for BEFORE position -->
+                            <div x-show="draggedOver?.id === item.id && dropPosition === 'before' && dragging"
+                                class="w-full bg-white border-2 border-blue-400 rounded-lg shadow-lg opacity-75"
+                                :style="{ height: dragging?.height + 'px' }">
+                                <div class="flex items-center p-3">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <circle cx="7" cy="5" r="1.5"></circle>
+                                            <circle cx="13" cy="5" r="1.5"></circle>
+                                            <circle cx="7" cy="10" r="1.5"></circle>
+                                            <circle cx="13" cy="10" r="1.5"></circle>
+                                            <circle cx="7" cy="15" r="1.5"></circle>
+                                            <circle cx="13" cy="15" r="1.5"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span x-text="dragging?.display" class="text-sm font-medium text-blue-700"></span>
+                                        <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded">Drop here</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </template>
-                </div>
+
+                        <!-- Actual Item -->
+                        <div
+                            draggable="true"
+                            @dragstart="startDrag($event, item)"
+                            :class="{
+                                'opacity-30': dragging?.id === item.id,
+                                'ring-2 ring-blue-300': draggedOver?.id === item.id && !dropPosition
+                            }"
+                            class="bg-white rounded-lg border border-gray-200 shadow-sm transition-all duration-100 cursor-move hover:shadow-md">
+
+                            <div class="flex items-center p-3">
+                                <div class="flex-shrink-0 mr-3">
+                                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <circle cx="7" cy="5" r="1.5"></circle>
+                                        <circle cx="13" cy="5" r="1.5"></circle>
+                                        <circle cx="7" cy="10" r="1.5"></circle>
+                                        <circle cx="13" cy="10" r="1.5"></circle>
+                                        <circle cx="7" cy="15" r="1.5"></circle>
+                                        <circle cx="13" cy="15" r="1.5"></circle>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <span x-text="item.display" class="text-sm font-medium text-gray-900"></span>
+                                    <span class="ml-2 px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded" x-text="`ID: ${item.id}`"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Drop Zone AFTER every item -->
+                        <div @dragover="dragOverZone($event, item, 'after')"
+                            @dragleave="dragLeaveZone($event)"
+                            @drop="dropInZone($event, item, 'after')"
+                            :class="{
+                                'h-12 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg': draggedOver?.id === item.id && dropPosition === 'after',
+                                'h-3 bg-gray-50 border border-dashed border-gray-300 rounded opacity-50': dragging && !(draggedOver?.id === item.id && dropPosition === 'after'),
+                                'h-0': !dragging
+                            }"
+                            class="transition-all duration-200 ease-out flex items-center justify-center">
+
+                            <!-- Ghost element for AFTER position -->
+                            <div x-show="draggedOver?.id === item.id && dropPosition === 'after' && dragging"
+                                class="w-full bg-white border-2 border-blue-400 rounded-lg shadow-lg opacity-75"
+                                :style="{ height: dragging?.height + 'px' }">
+                                <div class="flex items-center p-3">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <circle cx="7" cy="5" r="1.5"></circle>
+                                            <circle cx="13" cy="5" r="1.5"></circle>
+                                            <circle cx="7" cy="10" r="1.5"></circle>
+                                            <circle cx="13" cy="10" r="1.5"></circle>
+                                            <circle cx="7" cy="15" r="1.5"></circle>
+                                            <circle cx="13" cy="15" r="1.5"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span x-text="dragging?.display" class="text-sm font-medium text-blue-700"></span>
+                                        <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded">Drop here</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
 
-    @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    @endpush
+
 
     @push('styles')
         <style>
@@ -302,8 +470,8 @@
             /* Only show drop zone styling when dragging AND hovering */
             .is-dragging .nested-sortable.children:hover {
                 min-height: 20px;
-                padding: 8px;
-                margin: 4px 0;
+                padding: 4px;
+                margin: 1px 0;
                 background: rgba(59, 130, 246, 0.1);
                 border: 2px dashed #3b82f6;
             }
@@ -312,7 +480,7 @@
 
             /* Sortable states */
             .sortable-ghost {
-                opacity: 0.3;
+                opacity: 0.9;
                 background: rgba(59, 130, 246, 0.1) !important;
                 border: 2px dashed #3b82f6 !important;
                 border-radius: 8px;
@@ -321,6 +489,8 @@
                 max-height: 60px !important;
                 height: 60px !important;
                 overflow: hidden;
+                margin-left: calc(var(--original-margin-left, 0px) + 24px) !important;
+                box-sizing: border-box !important;
             }
 
             .sortable-drag {
@@ -332,9 +502,22 @@
 
             .sortable-chosen {
                 background: rgba(59, 130, 246, 0.05) !important;
-                border-color: #3b82f6 !important;
+                border: 1px dashed red !important;
                 transform: scale(1.01);
+                height: var(--original-height) !important;
+                width: var(--original-width) !important;
+                max-height: var(--original-height) !important;
+                min-height: var(--original-height) !important;
+                max-width: var(--original-width) !important;
+                min-width: var(--original-width) !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
+                margin: var(--original-margin-top) var(--original-margin-right) var(--original-margin-bottom) var(--original-margin-left) !important;
+                padding-left: var(--original-padding-left) !important;
+                padding-right: var(--original-padding-right) !important;
             }
+
+
 
             /* Enhanced card styling */
             .tree-item .bg-white {
@@ -355,6 +538,8 @@
             .dark .is-dragging .nested-sortable.children:hover {
                 background: rgba(59, 130, 246, 0.15);
                 border-color: #3b82f6;
+                padding: 4px;
+                margin: 1px 0;
             }
 
 
