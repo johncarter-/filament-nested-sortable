@@ -313,8 +313,7 @@
                         x-on:drop="dropInZone($event, item, 'after')"
                         x-bind:class="{
                             'h-12 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg': draggedOver?.id === item.id && dropPosition === 'after',
-                            'h-3 bg-gray-50 border border-dashed border-gray-300 rounded opacity-50': dragging && !(draggedOver?.id === item.id && dropPosition === 'after'),
-                            'h-0': !dragging
+                            'h-0': !(draggedOver?.id === item.id && dropPosition === 'after')
                         }"
                         class="flex justify-center items-center transition-all duration-200 ease-out"
                         x-bind:style="'margin-left: ' + (item.indent || 0) + 'px;'">
