@@ -28,14 +28,23 @@
                         const itemWithDepth = {
                             ...item,
                             depth: depth,
-                            indent: depth * 24
+                            indent: depth * 24,
+                            collapsed: item.collapsed || false
                         };
                         flat.push(itemWithDepth);
-                        if (item.children && item.children.length > 0) {
+                        if (item.children && item.children.length > 0 && !item.collapsed) {
                             flat.push(...this.flattenItems(item.children, depth + 1));
                         }
                     });
                     return flat;
+                },
+
+                toggleCollapse(itemId) {
+                    const item = this.findItemInTree(this.workingItems, itemId);
+                    if (item) {
+                        item.collapsed = !item.collapsed;
+                        this.displayItems = this.flattenItems(this.workingItems);
+                    }
                 },
 
                 startDrag(event, item) {
@@ -301,8 +310,23 @@
                         class="hover:shadow-md relative rounded-lg border border-gray-200 shadow-sm transition-all duration-100 cursor-move"
                         x-bind:style="(draggedOver?.id === item.id && dropPosition === 'nest' ? 'transform: scale(1.02);' : '') + 'margin-left: ' + (item.indent || 0) + 'px;'">
 
-                        <div class="flex items-center p-3 bg-white rounded-lg">
-                            <div class="flex-shrink-0 mr-3">
+                        <div class="flex items-center p-3 px-2 py-3 bg-white rounded-lg">
+                            <!-- Collapse/Expand Chevron -->
+                            <div x-show="item.children && item.children.length > 0"
+                                x-on:click.stop="toggleCollapse(item.id)"
+                                class="hover:text-gray-600 flex-shrink-0 mr-1 text-gray-400 transition-colors cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path x-show="!item.collapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    <path x-show="item.collapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+
+                            <!-- Invisible placeholder for alignment -->
+                            <div x-show="!item.children || item.children.length === 0"
+                                class="flex-shrink-0 mr-1 w-4 h-4">
+                            </div>
+
+                            <div class="flex-shrink-0 mr-2">
                                 <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <circle cx="7" cy="5" r="1.5"></circle>
                                     <circle cx="13" cy="5" r="1.5"></circle>
