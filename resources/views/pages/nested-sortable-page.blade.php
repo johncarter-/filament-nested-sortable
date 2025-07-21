@@ -80,6 +80,11 @@
                     } else {
                         this.dropPosition = 'nest';
                     }
+
+                    // Debug logging for child items
+                    if (item.depth > 0) {
+                        console.log(`Hovering over child item: ${item.display} (depth: ${item.depth}), position: ${this.dropPosition}`);
+                    }
                 },
 
                 dragLeaveZone(event) {
@@ -111,6 +116,13 @@
                         return;
                     }
 
+                    // Prevent circular references - don't allow dragging a parent into its own child
+                    if (position === 'nest' && this.wouldCreateCircularReference(this.dragging.id, targetItem.id)) {
+                        console.log('Preventing circular reference');
+                        this.clearDragState();
+                        return;
+                    }
+
                     if (position === 'nest') {
                         this.nestItem(this.dragging.id, targetItem.id);
                     } else {
@@ -118,6 +130,23 @@
                     }
 
                     this.clearDragState();
+                },
+
+                wouldCreateCircularReference(draggedItemId, targetItemId) {
+                    // Check if targetItem is a descendant of draggedItem
+                    const isDescendant = this.isDescendantOf(draggedItemId, targetItemId);
+                    return isDescendant;
+                },
+
+                isDescendantOf(parentId, childId) {
+                    const parent = this.findItemInTree(this.workingItems, parentId);
+                    if (!parent || !parent.children) return false;
+
+                    for (let child of parent.children) {
+                        if (child.id === childId) return true;
+                        if (this.isDescendantOf(child.id, childId)) return true;
+                    }
+                    return false;
                 },
 
                 nestItem(draggedItemId, targetItemId) {
@@ -290,8 +319,8 @@
 
                                 <!-- Nesting indicator -->
                                 <span x-show="draggedOver?.id === item.id && dropPosition === 'nest'"
-                                    class="px-2 py-1 ml-2 text-xs font-medium text-green-700 bg-green-100 rounded">
-                                    📁 Add as child
+                                    class="px-2 py-1 ml-2 text-xs font-medium text-green-700 bg-green-100 rounded border border-green-300">
+                                    📁 Add as child<span x-show="item.depth > 0" class="ml-1" x-text="`(Level ${item.depth + 1})`"></span>
                                 </span>
 
                                 <!-- Reordering indicators -->
