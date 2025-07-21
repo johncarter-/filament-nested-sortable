@@ -168,7 +168,7 @@
                     if (!targetItem.children) {
                         targetItem.children = [];
                     }
-                    targetItem.children.push(draggedItem);
+                    targetItem.children.unshift(draggedItem);
 
                     this.hasChanges = true;
                     this.$wire.call('setHasChanges', true);
@@ -327,13 +327,15 @@
                             </div>
 
                             <div class="flex-shrink-0 mr-2">
-                                <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <circle cx="7" cy="5" r="1.5"></circle>
-                                    <circle cx="13" cy="5" r="1.5"></circle>
-                                    <circle cx="7" cy="10" r="1.5"></circle>
-                                    <circle cx="13" cy="10" r="1.5"></circle>
-                                    <circle cx="7" cy="15" r="1.5"></circle>
-                                    <circle cx="13" cy="15" r="1.5"></circle>
+                                <svg class="w-5 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 24">
+                                    <circle cx="7" cy="3" r="1.2"></circle>
+                                    <circle cx="13" cy="3" r="1.2"></circle>
+                                    <circle cx="7" cy="8" r="1.2"></circle>
+                                    <circle cx="13" cy="8" r="1.2"></circle>
+                                    <circle cx="7" cy="13" r="1.2"></circle>
+                                    <circle cx="13" cy="13" r="1.2"></circle>
+                                    <circle cx="7" cy="18" r="1.2"></circle>
+                                    <circle cx="13" cy="18" r="1.2"></circle>
                                 </svg>
                             </div>
                             <div class="flex-1">
@@ -377,13 +379,15 @@
                             x-bind:style="{ height: dragging?.height + 'px', marginLeft: (item.indent || 0) + 'px' }">
                             <div class="flex items-center p-3">
                                 <div class="flex-shrink-0 mr-3">
-                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <circle cx="7" cy="5" r="1.5"></circle>
-                                        <circle cx="13" cy="5" r="1.5"></circle>
-                                        <circle cx="7" cy="10" r="1.5"></circle>
-                                        <circle cx="13" cy="10" r="1.5"></circle>
-                                        <circle cx="7" cy="15" r="1.5"></circle>
-                                        <circle cx="13" cy="15" r="1.5"></circle>
+                                    <svg class="w-5 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 24">
+                                        <circle cx="7" cy="3" r="1.2"></circle>
+                                        <circle cx="13" cy="3" r="1.2"></circle>
+                                        <circle cx="7" cy="8" r="1.2"></circle>
+                                        <circle cx="13" cy="8" r="1.2"></circle>
+                                        <circle cx="7" cy="13" r="1.2"></circle>
+                                        <circle cx="13" cy="13" r="1.2"></circle>
+                                        <circle cx="7" cy="18" r="1.2"></circle>
+                                        <circle cx="13" cy="18" r="1.2"></circle>
                                     </svg>
                                 </div>
                                 <div class="flex-1">
