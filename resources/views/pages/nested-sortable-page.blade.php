@@ -4,7 +4,7 @@
         {{-- https://github.com/filamentphp/filament/blob/3.x/packages/support/resources/js/sortable.js --}}
         x-sortable
         x-sortable-group="nested-sortable"
-        x-on:end.stop="$wire.reorderTable($event.target.sortable.toArray())">
+        x-on:end.stop="$wire.reorderNest($event.target.sortable.toArray())">
         @foreach ($records as $record)
             {{-- Must be @livewire syntax else Alpine tries to bind to the `record` attribute  --}}
             {{-- Not working: <livewire:filament-nested-sortable::nested-record :record="$record" /> --}}

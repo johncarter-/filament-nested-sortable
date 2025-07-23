@@ -31,7 +31,7 @@ abstract class NestedSortablePage extends Page
     }
 
     #[Renderless]
-    public function reorderTable(array $sortedRecords): void
+    public function reorderNest(array $sortedRecords): void
     {
         ray($sortedRecords)->label('NestedSortablePage');
     }

@@ -33,7 +33,7 @@
             class="pt-1 ml-6 rounded transition-all"
             x-sortable
             x-sortable-group="nested-sortable"
-            x-on:end.stop="$wire.reorderTable($event.target.sortable.toArray())">
+            x-on:end.stop="$wire.reorderNest($event.target.sortable.toArray())">
             {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
             @if ($record->children->count() > 0)
                 @foreach ($record->children as $child)
