@@ -8,6 +8,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 class NestedRecord extends Component implements HasForms, HasActions
@@ -30,6 +31,12 @@ class NestedRecord extends Component implements HasForms, HasActions
         return Action::make('test')
             ->requiresConfirmation()
             ->action(fn() => ray($this->record->id));
+    }
+
+    #[Renderless]
+    public function reorderTable(array $sortedRecords): void
+    {
+        ray($sortedRecords)->label('NestedRecord');
     }
 
     public function render()

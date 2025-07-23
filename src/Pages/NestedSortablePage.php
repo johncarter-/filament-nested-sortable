@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\Page;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\Attributes\Renderless;
 
 abstract class NestedSortablePage extends Page
 {
@@ -27,5 +28,11 @@ abstract class NestedSortablePage extends Page
     public function getRecords(): EloquentCollection
     {
         return $this->getResource()::getEloquentQuery()->get();
+    }
+
+    #[Renderless]
+    public function reorderTable(array $sortedRecords): void
+    {
+        ray($sortedRecords)->label('NestedSortablePage');
     }
 }
