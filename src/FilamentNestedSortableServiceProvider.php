@@ -22,5 +22,13 @@ class FilamentNestedSortableServiceProvider extends PackageServiceProvider
 
         // Register the language files
         $this->loadTranslationsFrom(__DIR__ . '/../lang', 'filament-nested-sortable');
+
+        // Register Livewire components
+        $this->loadLivewireComponents();
+    }
+
+    protected function loadLivewireComponents(): void
+    {
+        \Livewire\Livewire::component('filament-nested-sortable::nested-record', \JohnCarter\FilamentNestedSortable\Livewire\NestedRecord::class);
     }
 }
