@@ -4,7 +4,21 @@
         {{-- https://github.com/filamentphp/filament/blob/3.x/packages/support/resources/js/sortable.js --}}
         x-sortable
         x-sortable-group="nested-sortable"
-        x-on:end.stop="$wire.reorderNest($event.target.sortable.toArray())">
+        x-on:end.stop="updateFullNest($event)"
+        x-ref="rootNestedSortable"
+        x-data="{
+            updateFullNest($event) {
+                console.log('updating full nest');
+                // Get all the nested `sorted` instances registered within this x-sortable element
+        
+                // Scan the DOM for all the `sorted` instances registered within this x-sortable element
+                const sortedInstances = $refs.rootNestedSortable.sortable;
+                console.log('Instances:');
+                console.log(sortedInstances);
+        
+                $wire.reorderNest(sortedInstances);
+            }
+        }">
         @foreach ($records as $record)
             {{-- Must be @livewire syntax else Alpine tries to bind to the `record` attribute  --}}
             {{-- Not working: <livewire:filament-nested-sortable::nested-record :record="$record" /> --}}

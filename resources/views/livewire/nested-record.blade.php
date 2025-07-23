@@ -37,7 +37,7 @@
                 <div
                     x-sortable
                     x-sortable-group="nested-sortable"
-                    x-on:end.stop="$wire.reorderNest($event.target.sortable.toArray())">
+                    x-on:end.stop="updateFullNest($event)">
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
                     @if ($record->children->count() > 0)
 
