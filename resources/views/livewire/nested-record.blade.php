@@ -29,17 +29,24 @@
             </div>
         </div>
 
-        <div
-            class="pt-1 ml-6 rounded transition-all"
-            x-sortable
-            x-sortable-group="nested-sortable"
-            x-on:end.stop="$wire.reorderNest($event.target.sortable.toArray())">
-            {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
-            @if ($record->children->count() > 0)
-                @foreach ($record->children as $child)
-                    @livewire('filament-nested-sortable::nested-record', ['record' => $child, 'parentId' => $child->parent_id], key($child->id))
-                @endforeach
-            @endif
+        {{-- There seem to be a lot of wrapping divs here. But it is required to allow for UI spacing and collapsible nests --}}
+        <div class="pt-1 ml-6 rounded transition-all">
+            <div
+                x-show="!collapsed"
+                x-collapse>
+                <div
+                    x-sortable
+                    x-sortable-group="nested-sortable"
+                    x-on:end.stop="$wire.reorderNest($event.target.sortable.toArray())">
+                    {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
+                    @if ($record->children->count() > 0)
+
+                        @foreach ($record->children as $child)
+                            @livewire('filament-nested-sortable::nested-record', ['record' => $child, 'parentId' => $child->parent_id], key($child->id))
+                        @endforeach
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
     <x-filament-actions::modals />
