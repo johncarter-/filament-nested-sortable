@@ -19,18 +19,23 @@ class NestedRecord extends Component implements HasForms, HasActions
     public $record;
     public $parentId = null;
 
-    public function getActionGroup(): ActionGroup
-    {
-        return ActionGroup::make([
-            $this->testAction(),
-        ]);
-    }
-
     public function testAction(): Action
     {
         return Action::make('test')
             ->requiresConfirmation()
             ->action(fn() => ray($this->record->id));
+    }
+
+    public function getActions(): array
+    {
+        return [
+            $this->testAction(),
+        ];
+    }
+
+    public function getActionGroup(): ActionGroup
+    {
+        return ActionGroup::make($this->getActions());
     }
 
     #[Renderless]
