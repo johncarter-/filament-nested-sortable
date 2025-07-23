@@ -1,5 +1,5 @@
 <div
-    wire:key="{{ $record->id }}"
+    {{-- Don't add a wire:key here it will break DOM diffing. The key is already added as a Livewire component parameter. --}}
     x-sortable-item="{{ $record->id }}"
     x-data="{ collapsed: false }">
     <div>
