@@ -16,6 +16,7 @@ class NestedRecord extends Component implements HasForms, HasActions
     use InteractsWithForms;
 
     public $record;
+    public $parentId = null;
 
     public function getActionGroup(): ActionGroup
     {
