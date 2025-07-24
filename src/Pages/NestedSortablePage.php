@@ -30,6 +30,16 @@ abstract class NestedSortablePage extends Page
         return $this->getResource()::getEloquentQuery()->get();
     }
 
+    /* https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments */
+    public function testAction(): Action
+    {
+        return Action::make('test')
+            ->requiresConfirmation()
+            ->action(function (array $arguments) {
+                ray($arguments['record'])->label('testAction');
+            });
+    }
+
     #[Renderless]
     public function reorderNest(array $sortedRecords): void
     {

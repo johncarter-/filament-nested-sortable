@@ -1,5 +1,6 @@
 <div
     {{-- Don't add a wire:key here it will break DOM diffing. The key is already added as a Livewire component parameter. --}}
+    wire:key="{{ $record->id }}"
     x-sortable-item="{{ $record->id }}"
     x-data="{ collapsed: false }">
     <div>
@@ -25,7 +26,19 @@
                 </div>
             </div>
             <div class="px-2 py-3">
-                {{ $this->getActionGroup() }}
+                @php
+                    // See: https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments
+                    // $record passed as $arguments to the Action callback in the NestedSortablePage
+                    $actions = [($this->testAction)(['record' => $record])];
+                @endphp
+                <x-filament-actions::group
+                    :actions="$actions"
+                    label="Actions"
+                    icon="heroicon-m-ellipsis-vertical"
+                    color="primary"
+                    size="md"
+                    tooltip="More actions"
+                    dropdown-placement="bottom-start" />
             </div>
         </div>
 
@@ -40,9 +53,8 @@
                     x-on:end.stop="updateFullNest($event)">
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
                     @if ($record->children->count() > 0)
-
                         @foreach ($record->children as $child)
-                            @livewire('filament-nested-sortable::nested-record', ['record' => $child, 'parentId' => $child->parent_id], key($child->id))
+                            <x-filament-nested-sortable::nested-record :record="$child" :parent-id="$child->parent_id" />
                         @endforeach
                     @endif
                 </div>
