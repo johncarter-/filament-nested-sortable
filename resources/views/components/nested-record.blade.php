@@ -22,8 +22,11 @@
                         x-bind:class="collapsed ? '' : 'rotate-90'" />
                 </div>
 
-                <div class="flex flex-1 px-2 py-3 space-x-2">
+                <div class="flex flex-1 items-center px-2 py-3 space-x-2">
                     <div class="text-sm font-medium">{{ $record->title }}</div>
+                    @if ($record->slug)
+                        <div class="font-mono text-sm text-gray-400">{{ $record->slug }}</div>
+                    @endif
                     {{-- 
                     <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> id: {{ $record->id }}</div>
                     <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> order: {{ $record->order }}</div>
@@ -38,7 +41,7 @@
                 @php
                     // See: https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments
                     // $record passed as $arguments to the Action callback in the NestedSortablePage
-                    $actions = [($this->testAction)(['record' => $record])];
+                    $actions = [($this->testAction)(['record' => $record]), ($this->deleteAction)(['record' => $record])];
                 @endphp
                 <x-filament-actions::group
                     :actions="$actions"
@@ -63,7 +66,7 @@
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
                     @if ($record->children->count() > 0)
                         @foreach ($record->children as $child)
-                            <x-filament-nested-sortable::nested-record :record="$child" :parent-id="$child->parent_id" />
+                            <x-filament-nested-sortable::nested-record :record="$child" />
                         @endforeach
                     @endif
                 </div>

@@ -4,6 +4,7 @@ namespace JohnCarter\FilamentNestedSortable\Pages;
 
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\Page;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -28,7 +29,7 @@ abstract class NestedSortablePage extends Page
     public function getRecords(): EloquentCollection
     {
         return $this->getResource()::getEloquentQuery()
-            ->select('id', 'title', 'order', 'parent_id')
+            ->select('id', 'title', 'slug', 'order', 'parent_id')
             ->with('children')
             ->orderBy('order')
             ->get();
@@ -38,6 +39,7 @@ abstract class NestedSortablePage extends Page
     public function testAction(): Action
     {
         return Action::make('test')
+            ->icon('heroicon-o-light-bulb')
             ->requiresConfirmation()
             // TODO: Allow for dynamic record injection
             ->action(function (array $arguments) {
@@ -45,21 +47,43 @@ abstract class NestedSortablePage extends Page
             });
     }
 
+    public function deleteAction(): Action
+    {
+        return Action::make('delete')
+            ->label('Delete')
+            ->color('danger')
+            ->icon('heroicon-o-trash')
+            ->requiresConfirmation()
+            ->action(function (array $arguments) {
+                $this->getResource()::getModel()::find($arguments['record']['id'])->delete();
+                $this->records = $this->getRecords();
+            });
+    }
+
     public function getHeaderActions(): array
     {
         return [
-            // Action::make('discard')
-            //     ->color('gray')
-            //     ->label('Discard')
-            //     ->action(function () {
-            //         $this->dispatch('reset-pending-record-updates');
-            //     }),
-            // Action::make('save')
-            //     ->label('Save')
-            //     ->action(function () {
-            //         $this->dispatch('persist-pending-record-updates');
-            //     }),
+            Action::make('create')
+                ->label('Create new record')
+                ->form([
+                    TextInput::make('title')
+                        ->label('Title')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $this->createRecord($data);
+                }),
         ];
+    }
+
+    public function createRecord(array $data): void
+    {
+        $this->records->push($this->getResource()::getModel()::create(
+            array_merge(
+                $data,
+                ['slug' => \Illuminate\Support\Str::slug($data['title'])]
+            )
+        ));
     }
 
     #[Renderless]

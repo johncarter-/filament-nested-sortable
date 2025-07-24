@@ -111,13 +111,13 @@
                         });
                     });
                 });
+        
             }
         }"
-        x-on:reset-pending-record-updates.window="pendingRecordUpdates = []"
-        {{-- x-on:persist-pending-record-updates.window="$wire.persistRecordUpdates(pendingRecordUpdates)" --}}>
+        x-on:reset-pending-record-updates.window="pendingRecordUpdates = []">
 
         <div
-            x-bind:class="pendingRecordUpdates.length === 0 ? 'invisible' : ''"
+            x-bind:class="pendingRecordUpdates.length > 0 ? '' : 'invisible'"
             class="flex justify-between items-center p-4 mb-4 space-x-4 bg-white rounded border">
             <div class="flex-1 text-sm text-gray-500">
                 You have unsaved changes.
@@ -133,13 +133,13 @@
                 x-on:click="
                     $wire.persistRecordUpdates(pendingRecordUpdates).then(() => {
                         new FilamentNotification()
-                            .title('Saved successfully')
+                            .title('Changes saved successfully')
                             .success()
                             .send()
                         pendingRecordUpdates = [];
                     });
                 ">
-                Update records
+                Save changes
             </x-filament::button>
         </div>
         <div {{-- Using Filament Alpine directive of SortableJS --}}
