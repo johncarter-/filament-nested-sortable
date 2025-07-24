@@ -1,6 +1,6 @@
 {
   "name": "johncarter/filament-nested-sortable",
-  "description": "A Filament 3 plugin for ordering and nesting model records",
+  "description": "A Filament plugin for ordering and nesting model records",
   "type": "library",
   "license": "MIT",
   "require": {

@@ -2,7 +2,6 @@
 
 namespace JohnCarter\FilamentNestedSortable\Pages;
 
-use Filament\Actions\ActionGroup;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\Page;
