@@ -3,24 +3,110 @@
         x-ref="rootSortableContainer"
         x-data="{
             pendingRecordUpdates: [],
+            originalState: [],
+            recordGroupMapping: {},
+        
+            getCurrentSortableState() {
+                const sortableGroups = this.$refs.rootSortableContainer.querySelectorAll('[x-sortable]');
+                const currentState = [];
+                const itemMapping = {};
+        
+                sortableGroups.forEach(group => {
+                    const parentId = group.getAttribute('data-parent-id');
+                    const recordIds = group.sortable.toArray();
+        
+                    currentState.push({
+                        parentId: parentId,
+                        recordIds: [...recordIds]
+                    });
+        
+                    // Build mapping of which group each item currently belongs to
+                    recordIds.forEach(recordId => {
+                        itemMapping[recordId] = parentId;
+                    });
+                });
+        
+                return { currentState, itemMapping };
+            },
+        
+            // Initialize original state on page load
+            init() {
+                $nextTick(() => {
+                    this.captureOriginalState();
+                })
+            },
+        
+            // Enhanced capture original state
+            captureOriginalState() {
+                const { currentState, itemMapping } = this.getCurrentSortableState();
+                this.originalState = currentState;
+                this.recordGroupMapping = itemMapping;
+            },
+        
+            // Enhanced revert with two-phase process
+            revertToOriginalState() {
+                const sortableGroups = this.$refs.rootSortableContainer.querySelectorAll('[x-sortable]');
+        
+                this.moveItemsToOriginalGroups(sortableGroups);
+        
+                this.restoreOriginalOrder(sortableGroups);
+        
+                this.pendingRecordUpdates = [];
+            },
+        
+            // Phase 1: Move items to their original groups
+            moveItemsToOriginalGroups(sortableGroups) {
+                const currentState = this.getCurrentSortableState();
+        
+                // Find items that are in the wrong group
+                Object.entries(this.recordGroupMapping).forEach(([itemId, originalParentId]) => {
+                    const currentParentId = currentState.itemMapping[itemId];
+        
+                    if (currentParentId !== originalParentId) {
+                        // Find the item element
+                        const itemElement = this.$refs.rootSortableContainer.querySelector('[data-item-id=' + JSON.stringify(itemId) + ']');
+        
+                        if (itemElement) {
+                            // Find the target group
+                            const targetGroup = Array.from(sortableGroups).find(g =>
+                                g.getAttribute('data-parent-id') === originalParentId
+                            );
+        
+                            if (targetGroup) {
+                                // Move the item to the target group
+                                targetGroup.appendChild(itemElement);
+                            }
+                        }
+                    }
+                });
+            },
+        
+            restoreOriginalOrder(sortableGroups) {
+                this.originalState.forEach(originalGroup => {
+                    const group = Array.from(sortableGroups).find(g =>
+                        g.getAttribute('data-parent-id') === originalGroup.parentId
+                    );
+        
+                    if (group && group.sortable) {
+                        group.sortable.sort(originalGroup.recordIds);
+                    }
+                });
+            },
+        
             updateRecordPosition(event) {
                 {{-- It seems inefficient to send the entire nest of records to the server. --}}
                 {{-- We have to update more than just the changed record because it effects the order of other items in the nest --}}
         
-                // Get all sortable groups
-                const sortableGroups = this.$refs.rootSortableContainer.querySelectorAll('[x-sortable]');
+                const { currentState } = this.getCurrentSortableState();
         
                 // Build complete current state
                 this.pendingRecordUpdates = [];
         
-                sortableGroups.forEach(group => {
-                    const parentId = group.getAttribute('data-parent-id');
-                    const recordIds = group.sortable.toArray(); // Gets current order of record IDs
-        
-                    recordIds.forEach((recordId, index) => {
+                currentState.forEach(group => {
+                    group.recordIds.forEach((recordId, index) => {
                         this.pendingRecordUpdates.push({
                             id: recordId,
-                            parent_id: parentId,
+                            parent_id: group.parentId,
                             order: index
                         });
                     });
@@ -39,7 +125,7 @@
 
             <x-filament::button
                 color="gray"
-                x-on:click="pendingRecordUpdates = [];">
+                x-on:click="revertToOriginalState()">
                 Discard changes
             </x-filament::button>
 
@@ -62,7 +148,6 @@
             x-sortable-group="nested-sortable"
             x-on:end.stop="updateRecordPosition(event)"
             data-parent-id="-1">
-
             @foreach ($records as $record)
                 {{-- Only show root level records, the children are rendered by the nested-record component --}}
                 @if ($record->parent_id == -1)

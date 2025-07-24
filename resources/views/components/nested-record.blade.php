@@ -2,6 +2,7 @@
     {{-- Don't add a wire:key here it will break DOM diffing. The key is already added as a Livewire component parameter. --}}
     wire:key="{{ $record->id }}"
     x-sortable-item="{{ $record->id }}"
+    data-item-id="{{ $record->id }}"
     x-data="{ collapsed: false }">
     <div>
         <div class="flex bg-white rounded border border-gray-200">
@@ -41,8 +42,7 @@
                     label="Actions"
                     icon="heroicon-m-ellipsis-vertical"
                     color="primary"
-                    size="md"
-                    tooltip="More actions"
+                    size="sm"
                     dropdown-placement="bottom-start" />
             </div>
         </div>
@@ -67,5 +67,4 @@
             </div>
         </div>
     </div>
-    <x-filament-actions::modals />
 </div>
