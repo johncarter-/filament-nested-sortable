@@ -70,6 +70,7 @@ abstract class NestedSortablePage extends Page
                         ->label('Title')
                         ->required(),
                 ])
+                ->modalWidth('md')
                 ->action(function (array $data) {
                     $this->createRecord($data);
                 }),

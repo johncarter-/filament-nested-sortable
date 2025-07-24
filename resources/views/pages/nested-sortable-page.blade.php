@@ -52,6 +52,8 @@
                 this.restoreOriginalOrder(sortableGroups);
         
                 this.pendingRecordUpdates = [];
+        
+                $dispatch('updated-record-position');
             },
         
             // Phase 1: Move items to their original groups
@@ -118,7 +120,7 @@
 
         <div
             x-bind:class="pendingRecordUpdates.length > 0 ? '' : 'invisible'"
-            class="flex justify-between items-center p-4 mb-4 space-x-4 bg-white rounded border">
+            class="flex justify-between items-center p-3 mb-4 space-x-4 bg-white rounded border">
             <div class="flex-1 text-sm text-gray-500">
                 You have unsaved changes.
             </div>
@@ -130,6 +132,7 @@
             </x-filament::button>
 
             <x-filament::button
+                color="success"
                 x-on:click="
                     $wire.persistRecordUpdates(pendingRecordUpdates).then(() => {
                         new FilamentNotification()
