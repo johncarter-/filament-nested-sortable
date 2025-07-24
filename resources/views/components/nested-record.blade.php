@@ -3,7 +3,16 @@
     wire:key="{{ $record->id }}"
     x-sortable-item="{{ $record->id }}"
     data-item-id="{{ $record->id }}"
-    x-data="{ collapsed: false }">
+    x-data="{
+        hasChildren: {{ $record->children->count() > 0 ? 'true' : 'false' }},
+        collapsed: false,
+        checkHasChildren() {
+            // Check if the child [x-sortable] has x-sortable-items in it
+            const childSortable = this.$el.querySelector('[x-sortable]');
+            this.hasChildren = childSortable.querySelectorAll('[x-sortable-item]').length > 0;
+        }
+    }"
+    x-on:updated-record-position.window="checkHasChildren()">
     <div>
         <div class="flex bg-white rounded border border-gray-200">
             <div class="flex flex-1 pl-1">
@@ -13,7 +22,8 @@
                 </div>
                 {{-- Collapse toggle --}}
                 <div
-                    class="cursor-pointer px-1 py-3 {{ $record->children->count() > 0 ? 'visible' : 'invisible pointer-events-none' }}"
+                    x-bind:class="hasChildren ? 'visible' : 'invisible pointer-events-none'"
+                    class="px-1 pt-3.5 pb-3"
                     x-on:click="collapsed = !collapsed">
                     <x-filament::icon
                         icon="heroicon-o-chevron-right"
@@ -59,9 +69,9 @@
                 x-show="!collapsed"
                 x-collapse>
                 <div
+                    {{-- We dont need an x-on:end (SortableJS) event here as the parent will handle it --}}
                     x-sortable
                     x-sortable-group="nested-sortable"
-                    x-on:end.stop="updateRecordPosition(event)"
                     data-parent-id="{{ $record->id }}">
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
                     @if ($record->children->count() > 0)

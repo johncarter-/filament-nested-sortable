@@ -142,11 +142,12 @@
                 Save changes
             </x-filament::button>
         </div>
-        <div {{-- Using Filament Alpine directive of SortableJS --}}
+        <div
+            {{-- Using Filament Alpine directive of SortableJS --}}
             {{-- https://github.com/filamentphp/filament/blob/3.x/packages/support/resources/js/sortable.js --}}
             x-sortable
             x-sortable-group="nested-sortable"
-            x-on:end.stop="updateRecordPosition(event)"
+            x-on:end="$dispatch('updated-record-position'); updateRecordPosition(event)"
             data-parent-id="-1">
             @foreach ($records as $record)
                 {{-- Only show root level records, the children are rendered by the nested-record component --}}
