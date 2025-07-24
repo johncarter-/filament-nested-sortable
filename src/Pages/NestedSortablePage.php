@@ -39,6 +39,7 @@ abstract class NestedSortablePage extends Page
     {
         return Action::make('test')
             ->requiresConfirmation()
+            // TODO: Allow for dynamic record injection
             ->action(function (array $arguments) {
                 ray($arguments['record'])->label('testAction');
             });
