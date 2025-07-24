@@ -1,10 +1,10 @@
 <div
     {{-- Don't add a wire:key here it will break DOM diffing. The key is already added as a Livewire component parameter. --}}
-    wire:key="{{ $record->id }}"
-    x-sortable-item="{{ $record->id }}"
-    data-item-id="{{ $record->id }}"
+    wire:key="{{ $record->{$this->recordKeyName} }}"
+    x-sortable-item="{{ $record->{$this->recordKeyName} }}"
+    data-item-id="{{ $record->{$this->recordKeyName} }}"
     x-data="{
-        hasChildren: {{ $record->children->count() > 0 ? 'true' : 'false' }},
+        hasChildren: {{ $record->{$this->childrenRelationName}->count() > 0 ? 'true' : 'false' }},
         collapsed: false,
         checkHasChildren() {
             // Check if the child [x-sortable] has x-sortable-items in it
@@ -33,15 +33,7 @@
                 </div>
 
                 <div class="flex flex-1 items-center px-2 py-3 space-x-2">
-                    <div class="dark:text-gray-100 text-sm font-medium text-gray-900">{{ $record->title }}</div>
-                    @if ($record->slug)
-                        <div class="dark:text-gray-400 font-mono text-sm text-gray-400">{{ $record->slug }}</div>
-                    @endif
-                    {{-- 
-                    <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> id: {{ $record->id }}</div>
-                    <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> order: {{ $record->order }}</div>
-                    <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> parent_id: {{ $record->parent_id }}</div>
-                    --}}
+                    <div class="dark:text-gray-100 text-sm font-medium text-gray-900">{{ $record->{$this->getRecordLabelColumn()} }}</div>
                 </div>
             </div>
             <div
@@ -51,7 +43,10 @@
                 @php
                     // See: https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments
                     // $record passed as $arguments to the Action callback in the NestedSortablePage
-                    $actions = [($this->testAction)(['record' => $record]), ($this->deleteAction)(['record' => $record])];
+                    $actions = [];
+                    foreach ($this->getRecordActions() as $action) {
+                        $actions[] = $action(['record' => $record]);
+                    }
                 @endphp
                 <x-filament-actions::group
                     :actions="$actions"
@@ -72,10 +67,10 @@
                     {{-- We dont need an x-on:end (SortableJS) event here as the parent will handle it --}}
                     x-sortable
                     x-sortable-group="nested-sortable"
-                    data-parent-id="{{ $record->id }}">
+                    data-parent-id="{{ $record->{$this->recordKeyName} }}">
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
-                    @if ($record->children->count() > 0)
-                        @foreach ($record->children as $child)
+                    @if ($record->{$this->childrenRelationName}->count() > 0)
+                        @foreach ($record->{$this->childrenRelationName} as $child)
                             <x-filament-nested-sortable::nested-record :record="$child" />
                         @endforeach
                     @endif

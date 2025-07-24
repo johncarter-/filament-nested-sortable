@@ -13,6 +13,14 @@ abstract class NestedSortablePage extends Page
 {
     public EloquentCollection $records;
 
+    public string $recordKeyName = 'id';
+
+    public string $parentColumn = 'parent_id';
+
+    public string $orderColumn = 'order';
+
+    public string $childrenRelationName = 'children';
+
     protected static string $view = 'filament-nested-sortable::pages.nested-sortable-page';
 
     public function mount(): void
@@ -28,21 +36,30 @@ abstract class NestedSortablePage extends Page
     public function getRecords(): EloquentCollection
     {
         return $this->getResource()::getEloquentQuery()
-            ->select('id', 'title', 'slug', 'order', 'parent_id')
             ->with('children')
-            ->orderBy('order')
+            ->orderBy($this->orderColumn)
             ->get();
     }
 
-    /* https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments */
-    public function testAction(): Action
+    public function getRecordLabelColumn(): string
     {
-        return Action::make('test')
-            ->icon('heroicon-o-light-bulb')
-            ->requiresConfirmation()
-            // TODO: Allow for dynamic record injection
-            ->action(function (array $arguments) {
-                ray($arguments['record'])->label('testAction');
+        return 'title';
+    }
+
+    public function getRecordActions(): array
+    {
+        return [
+            $this->editAction(),
+            $this->deleteAction(),
+        ];
+    }
+
+    public function editAction(): Action
+    {
+        return Action::make('edit')
+            ->icon('heroicon-o-pencil')
+            ->url(function (array $arguments) {
+                return $this->getResource()::getUrl('edit', ['record' => $arguments['record'][$this->recordKeyName]]);
             });
     }
 
@@ -54,7 +71,7 @@ abstract class NestedSortablePage extends Page
             ->icon('heroicon-o-trash')
             ->requiresConfirmation()
             ->action(function (array $arguments) {
-                $this->getResource()::getModel()::find($arguments['record']['id'])->delete();
+                $this->getResource()::getModel()::find($arguments['record'][$this->recordKeyName])->delete();
                 $this->records = $this->getRecords();
             });
     }
@@ -92,7 +109,7 @@ abstract class NestedSortablePage extends Page
     public function persistRecordUpdates($pendingRecordUpdates)
     {
         foreach ($pendingRecordUpdates as $update) {
-            $record = $this->getResource()::getModel()::find($update['id']);
+            $record = $this->getResource()::getModel()::find($update[$this->recordKeyName]);
             $record->update($update);
         }
 
