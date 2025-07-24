@@ -36,7 +36,7 @@ abstract class NestedSortablePage extends Page
     public function getRecords(): EloquentCollection
     {
         return $this->getResource()::getEloquentQuery()
-            ->with('children')
+            ->with($this->childrenRelationName)
             ->orderBy($this->orderColumn)
             ->get();
     }
