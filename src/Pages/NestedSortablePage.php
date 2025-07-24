@@ -44,9 +44,33 @@ abstract class NestedSortablePage extends Page
             });
     }
 
-    #[Renderless]
-    public function reorderNest(array $sortedRecords): void
+    public function getHeaderActions(): array
     {
-        ray($sortedRecords)->label('NestedSortablePage');
+        return [
+            // Action::make('discard')
+            //     ->color('gray')
+            //     ->label('Discard')
+            //     ->action(function () {
+            //         $this->dispatch('reset-pending-record-updates');
+            //     }),
+            // Action::make('save')
+            //     ->label('Save')
+            //     ->action(function () {
+            //         $this->dispatch('persist-pending-record-updates');
+            //     }),
+        ];
+    }
+
+    #[Renderless]
+    public function persistRecordUpdates($pendingRecordUpdates)
+    {
+        foreach ($pendingRecordUpdates as $update) {
+            $record = $this->getResource()::getModel()::find($update['id']);
+            $record->update($update);
+        }
+
+        $this->records = $this->getRecords();
+
+        $this->dispatch('reset-pending-record-updates');
     }
 }

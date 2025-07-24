@@ -7,7 +7,7 @@
         <div class="flex bg-white rounded border border-gray-200">
             <div class="flex flex-1 pl-1">
                 {{-- Drag handle --}}
-                <div x-sortable-handle class="cursor-grab px-1 py-3">
+                <div x-sortable-handle class="cursor-grab px-1 pt-3.5 pb-3">
                     <x-filament-nested-sortable::drag-handle class="w-4 h-4 text-gray-400" />
                 </div>
                 {{-- Collapse toggle --}}
@@ -21,8 +21,13 @@
                         x-bind:class="collapsed ? '' : 'rotate-90'" />
                 </div>
 
-                <div class="flex-1 px-2 py-3">
+                <div class="flex flex-1 px-2 py-3 space-x-2">
                     <div class="text-sm font-medium">{{ $record->title }}</div>
+                    {{-- 
+                    <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> id: {{ $record->id }}</div>
+                    <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> order: {{ $record->order }}</div>
+                    <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> parent_id: {{ $record->parent_id }}</div>
+                    --}}
                 </div>
             </div>
             <div class="px-2 py-3">
@@ -50,7 +55,8 @@
                 <div
                     x-sortable
                     x-sortable-group="nested-sortable"
-                    x-on:end.stop="updateFullNest($event)">
+                    x-on:end.stop="updateRecordPosition(event)"
+                    data-parent-id="{{ $record->id }}">
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
                     @if ($record->children->count() > 0)
                         @foreach ($record->children as $child)
