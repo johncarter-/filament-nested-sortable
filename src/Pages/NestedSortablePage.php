@@ -81,11 +81,7 @@ abstract class NestedSortablePage extends Page
         return [
             Action::make('create')
                 ->label('Create new record')
-                ->form([
-                    TextInput::make('title')
-                        ->label('Title')
-                        ->required(),
-                ])
+                ->form($this->getCreateRecordFormSchema())
                 ->modalWidth('md')
                 ->action(function (array $data) {
                     $this->createRecord($data);
@@ -93,14 +89,17 @@ abstract class NestedSortablePage extends Page
         ];
     }
 
+    public function getCreateRecordFormSchema(): array
+    {
+        return [
+            TextInput::make('title')
+                ->required(),
+        ];
+    }
+
     public function createRecord(array $data): void
     {
-        $this->getResource()::getModel()::create(
-            array_merge(
-                $data,
-                ['slug' => \Illuminate\Support\Str::slug($data['title'])]
-            )
-        );
+        $this->getResource()::getModel()::create($data);
 
         $this->records = $this->getRecords();
     }
