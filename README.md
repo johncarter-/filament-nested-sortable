@@ -2,6 +2,7 @@
 
 A Filament Panels plugin for ordering and nesting model records.
 
+![Screenshot](images/screenshot.png)
 
 ## Installation
 
