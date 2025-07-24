@@ -27,7 +27,11 @@ abstract class NestedSortablePage extends Page
 
     public function getRecords(): EloquentCollection
     {
-        return $this->getResource()::getEloquentQuery()->get();
+        return $this->getResource()::getEloquentQuery()
+            ->select('id', 'title', 'order', 'parent_id')
+            ->with('children')
+            ->orderBy('order')
+            ->get();
     }
 
     /* https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments */
