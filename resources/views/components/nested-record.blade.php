@@ -44,7 +44,7 @@
                     // See: https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments
                     // $record passed as $arguments to the Action callback in the NestedSortablePage
                     $actions = [];
-                    foreach ($this->getRecordActions() as $action) {
+                    foreach ($recordActions as $action) {
                         $actions[] = $action(['record' => $record]);
                     }
                 @endphp
@@ -71,7 +71,7 @@
                     {{-- The children MUST be a DIRECT descendant of the x-sortable element --}}
                     @if ($record->{$this->childrenRelationName}->count() > 0)
                         @foreach ($record->{$this->childrenRelationName} as $child)
-                            <x-filament-nested-sortable::nested-record :record="$child" />
+                            <x-filament-nested-sortable::nested-record :record="$child" :record-actions="$recordActions" />
                         @endforeach
                     @endif
                 </div>

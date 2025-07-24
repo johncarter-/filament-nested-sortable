@@ -145,6 +145,10 @@
                 Save changes
             </x-filament::button>
         </div>
+        @php
+            $recordActions = $this->getRecordActions();
+        @endphp
+
         <div
             {{-- Using Filament Alpine directive of SortableJS --}}
             {{-- https://github.com/filamentphp/filament/blob/3.x/packages/support/resources/js/sortable.js --}}
@@ -155,7 +159,7 @@
             @foreach ($records as $record)
                 {{-- Only show root level records, the children are rendered by the nested-record component --}}
                 @if ($record->parent_id == -1)
-                    <x-filament-nested-sortable::nested-record :record="$record" />
+                    <x-filament-nested-sortable::nested-record :record="$record" :record-actions="$recordActions" />
                 @endif
             @endforeach
         </div>
