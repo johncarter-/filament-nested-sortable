@@ -45,9 +45,9 @@
                 </div>
             </div>
             <div
-                class="px-2 py-3"
                 {{-- TODO: Using actions when there are pending changes breaks DOM --}}
-                x-show="pendingRecordUpdates.length === 0">
+                x-bind:class="pendingRecordUpdates.length === 0 ? '' : 'opacity-30 pointer-events-none'"
+                class="px-2 py-3">
                 @php
                     // See: https://filamentphp.com/docs/3.x/actions/adding-an-action-to-a-livewire-component#passing-action-arguments
                     // $record passed as $arguments to the Action callback in the NestedSortablePage

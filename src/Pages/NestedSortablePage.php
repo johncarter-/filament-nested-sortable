@@ -79,12 +79,14 @@ abstract class NestedSortablePage extends Page
 
     public function createRecord(array $data): void
     {
-        $this->records->push($this->getResource()::getModel()::create(
+        $this->getResource()::getModel()::create(
             array_merge(
                 $data,
                 ['slug' => \Illuminate\Support\Str::slug($data['title'])]
             )
-        ));
+        );
+
+        $this->records = $this->getRecords();
     }
 
     #[Renderless]
