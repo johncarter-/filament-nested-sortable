@@ -120,8 +120,8 @@
 
         <div
             x-bind:class="pendingRecordUpdates.length > 0 ? '' : 'invisible'"
-            class="flex justify-between items-center p-3 mb-4 space-x-4 bg-white rounded border">
-            <div class="flex-1 text-sm text-gray-500">
+            class="dark:bg-gray-800 dark:border-gray-700 flex justify-between items-center p-3 mb-4 space-x-4 bg-white rounded border border-gray-200">
+            <div class="dark:text-white flex-1 text-sm text-gray-500">
                 You have unsaved changes.
             </div>
 

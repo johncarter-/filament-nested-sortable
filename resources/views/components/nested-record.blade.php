@@ -14,11 +14,11 @@
     }"
     x-on:updated-record-position.window="checkHasChildren()">
     <div>
-        <div class="flex bg-white rounded border border-gray-200">
+        <div class="dark:bg-gray-800 dark:border-gray-700 flex bg-white rounded border border-gray-200">
             <div class="flex flex-1 pl-1">
                 {{-- Drag handle --}}
                 <div x-sortable-handle class="cursor-grab px-1 pt-3.5 pb-3">
-                    <x-filament-nested-sortable::drag-handle class="w-4 h-4 text-gray-400" />
+                    <x-filament-nested-sortable::drag-handle class="dark:text-gray-400 w-4 h-4 text-gray-400" />
                 </div>
                 {{-- Collapse toggle --}}
                 <div
@@ -33,9 +33,9 @@
                 </div>
 
                 <div class="flex flex-1 items-center px-2 py-3 space-x-2">
-                    <div class="text-sm font-medium">{{ $record->title }}</div>
+                    <div class="dark:text-gray-100 text-sm font-medium text-gray-900">{{ $record->title }}</div>
                     @if ($record->slug)
-                        <div class="font-mono text-sm text-gray-400">{{ $record->slug }}</div>
+                        <div class="dark:text-gray-400 font-mono text-sm text-gray-400">{{ $record->slug }}</div>
                     @endif
                     {{-- 
                     <div class="p-1 text-xs leading-none text-gray-500 bg-gray-100 border"> id: {{ $record->id }}</div>
