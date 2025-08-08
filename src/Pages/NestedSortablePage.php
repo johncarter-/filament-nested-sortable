@@ -21,7 +21,7 @@ abstract class NestedSortablePage extends Page
 
     public string $childrenRelationName = 'children';
 
-    protected static string $view = 'filament-nested-sortable::pages.nested-sortable-page';
+    protected string $view = 'filament-nested-sortable::pages.nested-sortable-page';
 
     public function mount(): void
     {
