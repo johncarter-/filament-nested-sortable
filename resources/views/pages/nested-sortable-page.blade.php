@@ -1,9 +1,32 @@
 <x-filament-panels::page>
     @if (!$records || $records->count() == 0)
-        <x-filament-tables::empty-state
-            icon="heroicon-o-document-text"
-            heading="No records found"
-            description="Try creating a new record." />
+        <div class="fi-ta-empty-state">
+            <div class="fi-ta-empty-state-content">
+                <div class="fi-ta-empty-state-icon-bg">
+                    {{ \Filament\Support\generate_icon_html($getEmptyStateIcon(), size: \Filament\Support\Enums\IconSize::Large) }}
+                </div>
+
+                <{{ $secondLevelHeadingTag }}
+                    class="fi-ta-empty-state-heading">
+                    No records found
+                    </{{ $secondLevelHeadingTag }}>
+
+                    @if (filled($emptyStateDescription = $getEmptyStateDescription()))
+                        <p class="fi-ta-empty-state-description">
+                            Try creating a new record.
+                        </p>
+                    @endif
+
+                    @if ($emptyStateActions = array_filter($getEmptyStateActions(), fn(\Filament\Actions\Action|\Filament\Actions\ActionGroup $action): bool => $action->isVisible()))
+                        <div
+                            class="fi-ta-actions fi-align-center fi-wrapped">
+                            @foreach ($emptyStateActions as $action)
+                                {{ $action }}
+                            @endforeach
+                        </div>
+                    @endif
+            </div>
+        </div>
     @else
         <div
             x-ref="rootSortableContainer"
