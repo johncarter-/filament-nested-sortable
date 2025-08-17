@@ -144,25 +144,41 @@
                     });
             
                 }
+            
             }"
             x-on:reset-pending-record-updates.window="pendingRecordUpdates = []">
 
-            <div
-                x-bind:class="pendingRecordUpdates.length > 0 ? '' : 'invisible'"
-                class="dark:bg-gray-800 dark:border-gray-700 flex justify-between items-center p-3 mb-4 space-x-4 bg-white rounded border border-gray-200">
-                <div class="dark:text-white flex-1 text-sm text-gray-500">
-                    You have unsaved changes.
+            <div class="space-x-4 mb-4 flex justify-start">
+
+                <div class="flex justify-end">
+                    <x-filament::button.group>
+                        <x-filament::button
+                            icon="heroicon-o-arrows-pointing-out"
+                            color="gray"
+                            x-on:click="$dispatch('expand-all')">
+                            Expand all
+                        </x-filament::button>
+                        <x-filament::button
+                            icon="heroicon-o-arrows-pointing-in"
+                            color="gray"
+                            x-on:click="$dispatch('collapse-all')">
+                            Collapse all
+                        </x-filament::button>
+                    </x-filament::button.group>
                 </div>
 
-                <x-filament::button
-                    color="gray"
-                    x-on:click="revertToOriginalState()">
-                    Discard changes
-                </x-filament::button>
+                <div
+                    x-cloak
+                    x-bind:class="pendingRecordUpdates.length > 0 ? '' : 'invisible'">
+                    <x-filament::button
+                        color="gray"
+                        x-on:click="revertToOriginalState()">
+                        Discard changes
+                    </x-filament::button>
 
-                <x-filament::button
-                    color="success"
-                    x-on:click="
+                    <x-filament::button
+                        color="primary"
+                        x-on:click="
                     $wire.persistRecordUpdates(pendingRecordUpdates).then(() => {
                         new FilamentNotification()
                             .title('Changes saved successfully')
@@ -171,8 +187,9 @@
                         pendingRecordUpdates = [];
                     });
                 ">
-                    Save changes
-                </x-filament::button>
+                        Save changes
+                    </x-filament::button>
+                </div>
             </div>
             @php
                 $recordActions = $this->getRecordActions();

@@ -12,7 +12,9 @@
             this.hasChildren = childSortable.querySelectorAll('[x-sortable-item]').length > 0;
         }
     }"
-    x-on:updated-record-position.window="checkHasChildren()">
+    x-on:updated-record-position.window="checkHasChildren()"
+    x-on:collapse-all.window="collapsed = true"
+    x-on:expand-all.window="collapsed = false">
     <div>
         <div class="dark:bg-gray-800 dark:border-gray-700 flex bg-white rounded border border-gray-200">
             <div class="flex flex-1 pl-1">
@@ -33,7 +35,9 @@
                 </div>
 
                 <div class="flex flex-1 items-center px-2 py-3 space-x-2">
-                    <div class="dark:text-gray-100 text-sm font-medium text-gray-900">{{ $record->{$this->getRecordLabelColumn()} }}</div>
+                    <div class="dark:text-gray-100 text-sm font-medium text-gray-900">
+                        {!! $this->getRecordLabel($record) !!}
+                    </div>
                 </div>
             </div>
             <div
@@ -54,7 +58,7 @@
                     icon="heroicon-m-ellipsis-vertical"
                     color="primary"
                     size="sm"
-                    dropdown-placement="bottom-start" />
+                    dropdown-placement="bottom-end" />
             </div>
         </div>
 

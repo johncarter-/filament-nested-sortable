@@ -5,8 +5,10 @@ namespace JohnCarter\FilamentNestedSortable\Pages;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\Page;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Renderless;
 
 abstract class NestedSortablePage extends Page
@@ -46,6 +48,27 @@ abstract class NestedSortablePage extends Page
         return 'title';
     }
 
+    public function hasRecordUrl(): bool
+    {
+        return true;
+    }
+
+    public function getRecordUrl($record): string
+    {
+        return $this->getResource()::getUrl('edit', ['record' => $record[$this->recordKeyName]]);
+    }
+
+    public function getRecordLabel($record): Htmlable | string
+    {
+        if ($this->hasRecordUrl()) {
+            return new HtmlString(
+                '<a href="' . $this->getRecordUrl($record) . '">' . $record->{$this->getRecordLabelColumn()} . '</a>'
+            );
+        }
+
+        return $record->{$this->getRecordLabelColumn()};
+    }
+
     public function getRecordActions(): array
     {
         return [
@@ -81,7 +104,7 @@ abstract class NestedSortablePage extends Page
         return [
             Action::make('create')
                 ->label('Create new record')
-                ->form($this->getCreateRecordFormSchema())
+                ->schema($this->getCreateRecordFormSchema())
                 ->modalWidth('md')
                 ->action(function (array $data) {
                     $this->createRecord($data);
